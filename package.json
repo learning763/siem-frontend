@@ -1,0 +1,53 @@
+{
+  "name": "siem-frontend",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "lint": "eslint",
+    "format": "prettier --check .",
+    "format:write": "prettier --write .",
+    "check": "prettier --write . && eslint --fix"
+  },
+  "dependencies": {
+    "@tanstack/react-form": "^1.28.2",
+    "@tanstack/react-query": "^5.90.21",
+    "@tanstack/react-query-devtools": "^5.91.3",
+    "@tanstack/react-router": "^1.159.14",
+    "@tanstack/react-router-devtools": "^1.159.14",
+    "@tanstack/react-store": "^0.8.0",
+    "@tanstack/store": "^0.8.0",
+    "clsx": "^2.1.1",
+    "cva": "1.0.0-beta.4",
+    "lucide-react": "^0.564.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "tailwind-merge": "^3.4.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@ianvs/prettier-plugin-sort-imports": "^4.7.1",
+    "@tailwindcss/forms": "^0.5.11",
+    "@tailwindcss/typography": "^0.5.19",
+    "@tailwindcss/vite": "^4.1.18",
+    "@tanstack/eslint-config": "^0.3.4",
+    "@tanstack/router-plugin": "^1.159.14",
+    "@types/node": "^25.2.3",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.4",
+    "eslint": "^10.0.0",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "prettier": "^3.8.1",
+    "prettier-plugin-tailwindcss": "^0.7.2",
+    "tailwindcss": "^4.1.18",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.55.0",
+    "vite": "^7.3.1",
+    "vite-tsconfig-paths": "^6.1.1"
+  },
+  "packageManager": "pnpm@10.25.0"
+}

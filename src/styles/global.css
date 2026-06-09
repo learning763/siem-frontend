@@ -1,0 +1,157 @@
+@import "tailwindcss";
+
+/* ─────────────────────────────────────────────────────────────
+   Global base
+   ───────────────────────────────────────────────────────────── */
+:root {
+  color-scheme: dark;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Tailwind v4 design tokens
+   Add new tokens here; they become Tailwind utility classes
+   automatically (e.g. bg-surface-panel, text-accent-cyan …).
+   ───────────────────────────────────────────────────────────── */
+@theme {
+  /* ── Brand colors ──────────────────────────────────────── */
+  --color-accent-cyan: #06b6d4; /* primary CTA, highlights      */
+  --color-accent-cyan-light: #67e8f9; /* hover state                  */
+  --color-accent-cyan-dark: #0891b2; /* pressed / active             */
+
+  /* ── Surface / background layers ──────────────────────── */
+  --color-surface-base: #020617; /* outermost page bg (slate-950) */
+  --color-surface-panel: #0f172a; /* sidebar, cards (slate-900)    */
+  --color-surface-input: #1e293b; /* form inputs (slate-800)       */
+  --color-surface-hover: #334155; /* row/item hover (slate-700)    */
+
+  /* ── Border tokens ─────────────────────────────────────── */
+  --color-border-subtle: #1e293b; /* dividers, card edges          */
+  --color-border-accent: rgba(6, 182, 212, 0.3); /* focused ring  */
+
+  /* ── Severity / status palette ─────────────────────────── */
+  --color-sev-critical: #ef4444; /* red-500  */
+  --color-sev-high: #f97316; /* orange-500 */
+  --color-sev-medium: #eab308; /* yellow-500 */
+  --color-sev-low: #22c55e; /* green-500  */
+  --color-sev-info: #3b82f6; /* blue-500   */
+
+  /* ── Text ──────────────────────────────────────────────── */
+  --color-text-primary: #f8fafc; /* slate-50  — headings          */
+  --color-text-secondary: #94a3b8; /* slate-400 — body / labels     */
+  --color-text-muted: #475569; /* slate-600 — hints / captions  */
+
+  /* ── Fonts ─────────────────────────────────────────────── */
+  --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  /* ── Animations ─────────────────────────────────────────── */
+  --animate-pulse-slow: pulse-slow 3s ease-in-out infinite;
+  --animate-scan-line: scan-line 4s linear infinite;
+  --animate-blink: blink 1.2s step-start infinite;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Keyframes
+   ───────────────────────────────────────────────────────────── */
+@keyframes pulse-slow {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+/* Horizontal scan-line that sweeps a panel top→bottom */
+@keyframes scan-line {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.6;
+  }
+  90% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Custom utilities  (@utility generates a single CSS class)
+   ───────────────────────────────────────────────────────────── */
+
+/* Cyan glow — wrap any icon/badge with this */
+@utility cyan-glow {
+  box-shadow:
+    0 0 6px rgba(6, 182, 212, 0.4),
+    0 0 16px rgba(6, 182, 212, 0.2);
+}
+
+/* Text glow for headings / alert counts */
+@utility text-glow-cyan {
+  text-shadow: 0 0 12px rgba(6, 182, 212, 0.7);
+}
+
+/* Subtle grid-dot background used on auth / empty states */
+@utility bg-grid-dots {
+  background-image: radial-gradient(
+    rgba(148, 163, 184, 0.08) 1px,
+    transparent 1px
+  );
+  background-size: 24px 24px;
+}
+
+/* Hide scrollbar but keep functionality */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Autofill override — keeps input bg consistent */
+@utility autofill-surface-input {
+  &:-webkit-autofill,
+  &:-webkit-autofill:hover,
+  &:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px var(--color-surface-input) inset !important;
+    -webkit-text-fill-color: var(--color-text-primary) !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+}
+
+/* Severity badge base — pair with a color variant below */
+@utility badge-severity-* {
+  background-color: color-mix(in srgb, --value(--color-sev-*), transparent 85%);
+  color: --value(--color-sev-*);
+  border: 1px solid color-mix(in srgb, --value(--color-sev-*), transparent 60%);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Component layer
+   ───────────────────────────────────────────────────────────── */
+@layer components {
+  button {
+    cursor: pointer;
+  }
+}

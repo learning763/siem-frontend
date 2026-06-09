@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+/* 
+ * https://github.com/tailwindlabs/tailwindcss-forms
+ */
+@plugin "@tailwindcss/forms";
+
+/*
+ * https://github.com/tailwindlabs/tailwindcss-typography
+ */
+@plugin "@tailwindcss/typography";
+
+/**
+ * Tailwind configuration
+ */
+@theme {
+  /* Background Images */
+  --background-image-intersection: url("/images/offmarket/bg-intersection.png");
+
+  --color-theme-red-bright: #eb392c;
+  /* Custom Breakpoints */
+  --breakpoint-xs: 425px;
+
+  /* Aspect Ratios */
+  --aspect-gameIcon: 159/187;
+  --aspect-banner: 1090/466;
+
+  /* Text Sizes */
+  --text-55: 220px;
+  --text-50: 200px;
+
+  --color-white2: #b4b8cf;
+  --color-dark2: #30344b;
+  --color-dark3: #6d7189;
+}
+
+@utility pink-glow-bg {
+  background: linear-gradient(
+    360deg,
+    rgba(254, 73, 243, 0.4) 69.63%,
+    rgba(254, 73, 243, 0.4) 100%
+  );
+}
+
+@utility provider-header-text-shadow {
+  text-shadow:
+    0 0 10px rgba(254, 73, 243, 0.8),
+    0 0 20px rgba(254, 73, 243, 0.6);
+}
+
+@keyframes neon-breathing {
+  0% {
+    filter: drop-shadow(0 0 0px transparent);
+    animation-timing-function: linear;
+  }
+  60% {
+    filter: drop-shadow(0 0 12px #fe66f5);
+    animation-timing-function: ease-out;
+  }
+  80% {
+    filter: drop-shadow(0 0 0px transparent);
+  }
+  100% {
+    filter: drop-shadow(0 0 0px transparent);
+  }
+}
+
+@utility scrollbar-width-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@layer components {
+  button {
+    cursor: pointer;
+  }
+}
