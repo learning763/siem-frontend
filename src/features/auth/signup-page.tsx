@@ -1,17 +1,12 @@
 import { useForm } from "@tanstack/react-form";
-import { Link } from "@tanstack/react-router";
-import {
-  AlertCircle,
-  CheckCircle2,
-  Eye,
-  EyeOff,
-  Lock,
-  Mail,
-  Shield,
-  User,
-} from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { Eye, EyeOff, Globe, Lock, Mail, Shield, User } from "lucide-react";
 import { useState } from "react";
 
+import { authApi } from "@/api/auth.api";
+import { Button } from "@/components/library/Button";
+import { Input } from "@/components/library/Input";
+import { useToast } from "@/components/library/Toast";
 import { m } from "@/lib/i18n";
 
 import { AuthLeftPanel } from "./auth-left-panel";
@@ -19,92 +14,60 @@ import { AuthLeftPanel } from "./auth-left-panel";
 export function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [signupError, setSignupError] = useState<string | null>(null);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [submittedEmail, setSubmittedEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const toast = useToast();
+  const navigate = useNavigate();
 
   const form = useForm({
     defaultValues: {
-      fullName: "",
+      firstName: "",
+      lastName: "",
       email: "",
+      country: "",
       password: "",
-      confirmPassword: "",
+      passwordConfirm: "",
       acceptTerms: false,
     },
     onSubmit: async ({ value }) => {
-      setSignupError(null);
-
-      if (value.password !== value.confirmPassword) {
-        setSignupError(m.passwords_do_not_match());
+      if (value.password !== value.passwordConfirm) {
+        toast.error(m.passwords_do_not_match());
         return;
       }
       if (!value.acceptTerms) {
-        setSignupError(m.must_accept_terms());
+        toast.error(m.must_accept_terms());
         return;
       }
 
       setIsLoading(true);
       try {
-        await new Promise((r) => setTimeout(r, 1200));
-        console.log("Signup submitted:", value);
-        setSubmittedEmail(value.email);
-        setIsSuccess(true);
-      } catch {
-        setSignupError(m.signup_failed());
+        await authApi.signup({
+          email: value.email,
+          first_name: value.firstName,
+          last_name: value.lastName,
+          password: value.password,
+          country: value.country,
+          password_confirm: value.passwordConfirm,
+        });
+        toast.success(m.signup_success_toast());
+        setTimeout(() => {
+          void navigate({ to: "/login" });
+        }, 1500);
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : m.signup_failed());
       } finally {
         setIsLoading(false);
       }
     },
   });
 
-  if (isSuccess) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950">
-        <div
-          className="absolute inset-0 opacity-[0.06]"
-          style={{
-            backgroundImage: `linear-gradient(rgba(148,163,184,1) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(148,163,184,1) 1px, transparent 1px)`,
-            backgroundSize: "40px 40px",
-          }}
-        />
-        <div className="absolute top-1/2 left-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-500/5 blur-3xl" />
-
-        <div className="relative z-10 w-full max-w-sm px-6 text-center">
-          <div className="mb-5 flex justify-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/10">
-              <CheckCircle2 className="h-7 w-7 text-emerald-400" />
-            </div>
-          </div>
-          <h2 className="mb-2 text-xl font-semibold text-white">
-            {m.request_submitted()}
-          </h2>
-          <p className="mb-1 text-sm text-slate-400">
-            {m.request_submitted_desc()}
-          </p>
-          <p className="mb-6 text-sm font-medium text-cyan-400">
-            {submittedEmail}
-          </p>
-          <p className="mb-8 text-xs text-slate-500">
-            {m.request_activation_desc()}
-          </p>
-          <Link
-            to="/login"
-            className="inline-flex items-center gap-2 rounded-lg bg-cyan-500 px-6 py-2.5 text-sm font-semibold text-slate-950 transition-all hover:bg-cyan-400"
-          >
-            {m.return_to_login()}
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  const fieldError = (errors: unknown[], isTouched: boolean) =>
+    isTouched && errors.length > 0 ? errors[0]?.toString() : undefined;
 
   return (
     <div className="flex h-screen bg-slate-950">
       <AuthLeftPanel />
 
-      {/* ── Right panel ── */}
       <div className="relative flex flex-1 items-center justify-center overflow-y-auto px-6 py-6">
         <div
           className="absolute inset-0 opacity-[0.06] lg:hidden"
@@ -137,13 +100,6 @@ export function SignupPage() {
           </h2>
           <p className="mb-5 text-sm text-slate-500">{m.register_subtitle()}</p>
 
-          {signupError && (
-            <div className="mb-6 flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
-              <AlertCircle className="h-4 w-4 shrink-0" />
-              {signupError}
-            </div>
-          )}
-
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -151,41 +107,62 @@ export function SignupPage() {
             }}
             className="space-y-3"
           >
-            <form.Field
-              name="fullName"
-              validators={{
-                onChange: ({ value }) =>
-                  value.trim().length < 2 ? m.full_name_min() : undefined,
-              }}
-            >
-              {(field) => (
-                <div>
-                  <label className="mb-1.5 block text-xs font-medium text-slate-400">
-                    {m.full_name()}
-                  </label>
-                  <div className="relative">
-                    <User className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-600" />
-                    <input
-                      id={field.name}
-                      name={field.name}
-                      type="text"
-                      autoComplete="name"
-                      placeholder="Jane Smith"
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                      className="w-full rounded-lg border border-slate-700 bg-slate-800/80 py-2 pr-4 pl-10 text-sm text-white placeholder-slate-600 transition-colors outline-none focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/20"
-                    />
-                  </div>
-                  {field.state.meta.isTouched &&
-                    field.state.meta.errors.length > 0 && (
-                      <p className="mt-1 text-xs text-red-400">
-                        {field.state.meta.errors[0]?.toString()}
-                      </p>
+            {/* First + Last name */}
+            <div className="grid grid-cols-2 gap-3">
+              <form.Field
+                name="firstName"
+                validators={{
+                  onChange: ({ value }) =>
+                    !value.trim() ? m.first_name_required() : undefined,
+                }}
+              >
+                {(field) => (
+                  <Input
+                    id={field.name}
+                    name={field.name}
+                    label={m.first_name()}
+                    icon={<User className="h-4 w-4" />}
+                    type="text"
+                    autoComplete="given-name"
+                    placeholder="Jane"
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                    error={fieldError(
+                      field.state.meta.errors,
+                      field.state.meta.isTouched,
                     )}
-                </div>
-              )}
-            </form.Field>
+                  />
+                )}
+              </form.Field>
+
+              <form.Field
+                name="lastName"
+                validators={{
+                  onChange: ({ value }) =>
+                    !value.trim() ? m.last_name_required() : undefined,
+                }}
+              >
+                {(field) => (
+                  <Input
+                    id={field.name}
+                    name={field.name}
+                    label={m.last_name()}
+                    icon={<User className="h-4 w-4" />}
+                    type="text"
+                    autoComplete="family-name"
+                    placeholder="Smith"
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                    error={fieldError(
+                      field.state.meta.errors,
+                      field.state.meta.isTouched,
+                    )}
+                  />
+                )}
+              </form.Field>
+            </div>
 
             <form.Field
               name="email"
@@ -199,31 +176,49 @@ export function SignupPage() {
               }}
             >
               {(field) => (
-                <div>
-                  <label className="mb-1.5 block text-xs font-medium text-slate-400">
-                    {m.work_email()}
-                  </label>
-                  <div className="relative">
-                    <Mail className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-600" />
-                    <input
-                      id={field.name}
-                      name={field.name}
-                      type="email"
-                      autoComplete="email"
-                      placeholder="analyst@corp.local"
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                      className="w-full rounded-lg border border-slate-700 bg-slate-800/80 py-2 pr-4 pl-10 text-sm text-white placeholder-slate-600 transition-colors outline-none focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/20"
-                    />
-                  </div>
-                  {field.state.meta.isTouched &&
-                    field.state.meta.errors.length > 0 && (
-                      <p className="mt-1 text-xs text-red-400">
-                        {field.state.meta.errors[0]?.toString()}
-                      </p>
-                    )}
-                </div>
+                <Input
+                  id={field.name}
+                  name={field.name}
+                  label={m.work_email()}
+                  icon={<Mail className="h-4 w-4" />}
+                  type="email"
+                  autoComplete="email"
+                  placeholder="analyst@corp.local"
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                  error={fieldError(
+                    field.state.meta.errors,
+                    field.state.meta.isTouched,
+                  )}
+                />
+              )}
+            </form.Field>
+
+            <form.Field
+              name="country"
+              validators={{
+                onChange: ({ value }) =>
+                  !value.trim() ? m.country_required() : undefined,
+              }}
+            >
+              {(field) => (
+                <Input
+                  id={field.name}
+                  name={field.name}
+                  label={m.country()}
+                  icon={<Globe className="h-4 w-4" />}
+                  type="text"
+                  autoComplete="country-name"
+                  placeholder="United States"
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                  error={fieldError(
+                    field.state.meta.errors,
+                    field.state.meta.isTouched,
+                  )}
+                />
               )}
             </form.Field>
 
@@ -240,27 +235,22 @@ export function SignupPage() {
               }}
             >
               {(field) => (
-                <div>
-                  <label className="mb-1.5 block text-xs font-medium text-slate-400">
-                    {m.password()}
-                  </label>
-                  <div className="relative">
-                    <Lock className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-600" />
-                    <input
-                      id={field.name}
-                      name={field.name}
-                      type={showPassword ? "text" : "password"}
-                      autoComplete="new-password"
-                      placeholder="Min. 8 chars, 1 uppercase, 1 number"
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                      className="w-full rounded-lg border border-slate-700 bg-slate-800/80 py-2 pr-11 pl-10 text-sm text-white placeholder-slate-600 transition-colors outline-none focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/20"
-                    />
+                <Input
+                  id={field.name}
+                  name={field.name}
+                  label={m.password()}
+                  icon={<Lock className="h-4 w-4" />}
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="new-password"
+                  placeholder="Min. 8 chars, 1 uppercase, 1 number"
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                  rightElement={
                     <button
                       type="button"
                       onClick={() => setShowPassword((v) => !v)}
-                      className="absolute top-1/2 right-3 -translate-y-1/2 text-slate-600 transition-colors hover:text-slate-400"
+                      className="text-slate-600 transition-colors hover:text-slate-400"
                       aria-label={
                         showPassword ? "Hide password" : "Show password"
                       }
@@ -271,46 +261,39 @@ export function SignupPage() {
                         <Eye className="h-4 w-4" />
                       )}
                     </button>
-                  </div>
-                  {field.state.meta.isTouched &&
-                    field.state.meta.errors.length > 0 && (
-                      <p className="mt-1 text-xs text-red-400">
-                        {field.state.meta.errors[0]?.toString()}
-                      </p>
-                    )}
-                </div>
+                  }
+                  error={fieldError(
+                    field.state.meta.errors,
+                    field.state.meta.isTouched,
+                  )}
+                />
               )}
             </form.Field>
 
             <form.Field
-              name="confirmPassword"
+              name="passwordConfirm"
               validators={{
                 onChange: ({ value }) =>
                   !value ? m.confirm_password_required() : undefined,
               }}
             >
               {(field) => (
-                <div>
-                  <label className="mb-1.5 block text-xs font-medium text-slate-400">
-                    {m.confirm_password()}
-                  </label>
-                  <div className="relative">
-                    <Lock className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-600" />
-                    <input
-                      id={field.name}
-                      name={field.name}
-                      type={showConfirm ? "text" : "password"}
-                      autoComplete="new-password"
-                      placeholder="••••••••••••"
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                      className="w-full rounded-lg border border-slate-700 bg-slate-800/80 py-2 pr-11 pl-10 text-sm text-white placeholder-slate-600 transition-colors outline-none focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/20"
-                    />
+                <Input
+                  id={field.name}
+                  name={field.name}
+                  label={m.confirm_password()}
+                  icon={<Lock className="h-4 w-4" />}
+                  type={showConfirm ? "text" : "password"}
+                  autoComplete="new-password"
+                  placeholder="••••••••••••"
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                  rightElement={
                     <button
                       type="button"
                       onClick={() => setShowConfirm((v) => !v)}
-                      className="absolute top-1/2 right-3 -translate-y-1/2 text-slate-600 transition-colors hover:text-slate-400"
+                      className="text-slate-600 transition-colors hover:text-slate-400"
                       aria-label={
                         showConfirm ? "Hide password" : "Show password"
                       }
@@ -321,14 +304,12 @@ export function SignupPage() {
                         <Eye className="h-4 w-4" />
                       )}
                     </button>
-                  </div>
-                  {field.state.meta.isTouched &&
-                    field.state.meta.errors.length > 0 && (
-                      <p className="mt-1 text-xs text-red-400">
-                        {field.state.meta.errors[0]?.toString()}
-                      </p>
-                    )}
-                </div>
+                  }
+                  error={fieldError(
+                    field.state.meta.errors,
+                    field.state.meta.isTouched,
+                  )}
+                />
               )}
             </form.Field>
 
@@ -348,20 +329,15 @@ export function SignupPage() {
               )}
             </form.Field>
 
-            <button
+            <Button
               type="submit"
-              disabled={isLoading}
-              className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-cyan-500 py-2.5 text-sm font-semibold text-slate-950 transition-all hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-60"
+              fullWidth
+              loading={isLoading}
+              loadingText={m.submitting_request()}
+              className="mt-2"
             >
-              {isLoading ? (
-                <>
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-950/30 border-t-slate-950" />
-                  {m.submitting_request()}
-                </>
-              ) : (
-                m.register_title()
-              )}
-            </button>
+              {m.register_title()}
+            </Button>
           </form>
 
           <p className="mt-4 text-center text-xs text-slate-500">

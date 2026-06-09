@@ -1,93 +1,58 @@
-import z from "zod";
+import { apiRequest } from "@/lib/api";
 
-import { AuthHelper } from "@/helpers/auth.helper";
-
-import { apiHelper } from "@/lib/api";
-
-//
-interface LoginOptions {
+export interface SignupPayload {
+  email: string;
+  first_name: string;
+  last_name: string;
   password: string;
-  emailOrUsername: string;
+  country: string;
+  password_confirm: string;
 }
 
-interface RegisterOptions {
-  username: string;
+export interface SignupResponse {
+  message?: string;
+  email?: string;
+}
+
+export interface LoginPayload {
   email: string;
   password: string;
 }
 
-interface ResetPasswordOptions {
-  email: string;
-  code: string;
-  newPassword: string;
+export interface LoginResponse {
+  access?: string;
+  refresh?: string;
+  token?: string;
+  key?: string;
 }
 
-export interface AuthResponse {
-  success: boolean;
-  message: string;
-  data: {
-    accessToken: string;
-  };
-}
-
-/**
- *
- */
 export class authApi {
-  /**
-   *
-   */
-  static async login(options: LoginOptions) {
-    const response = await apiHelper.makeRequest<AuthResponse>(
-      "/v4/auth/login",
-      {
-        method: "POST",
-        body: JSON.stringify(options),
-      },
-    );
-    if (response.success) {
-      AuthHelper.setAuthCookie(response.data.accessToken);
-    }
-    return response;
-  }
-
-  /**
-   *
-   */
-  static async register(options: RegisterOptions) {
-    const response = await apiHelper.makeRequest<AuthResponse>(
-      "/v4/auth/register",
-      {
-        method: "POST",
-        body: JSON.stringify(options),
-      },
-    );
-
-    if (response.success) {
-      AuthHelper.setAuthCookie(response.data.accessToken);
-    }
-    return response;
-  }
-
-  static async forgotPassword(options: { email: string }) {
-    const response = await apiHelper.makeRequest("/v4/auth/forgot-password", {
+  static async signup(payload: SignupPayload): Promise<SignupResponse> {
+    return apiRequest<SignupResponse>("/auth/signup/", {
       method: "POST",
-      body: JSON.stringify(options),
+      body: JSON.stringify(payload),
+    });
+  }
+
+  static async login(payload: LoginPayload): Promise<LoginResponse> {
+    const res = await apiRequest<LoginResponse>("/auth/login/", {
+      method: "POST",
+      body: JSON.stringify(payload),
     });
 
-    const outputSchema = apiHelper.getBaseSchema(z.any());
-    const output = outputSchema.parse(response);
-    return output;
+    const token = res.access ?? res.token ?? res.key;
+    if (token) {
+      localStorage.setItem("access_token", token);
+    }
+    if (res.refresh) {
+      localStorage.setItem("refresh_token", res.refresh);
+    }
+
+    return res;
   }
 
-  static async resetPassword(options: ResetPasswordOptions) {
-    const response = await apiHelper.makeRequest("/v4/auth/reset-password", {
-      method: "POST",
-      body: JSON.stringify(options),
-    });
-
-    const outputSchema = apiHelper.getBaseSchema(z.any());
-    const output = outputSchema.parse(response);
-    return output;
+  static logout() {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
   }
 }

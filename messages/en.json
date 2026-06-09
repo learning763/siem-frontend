@@ -53,6 +53,9 @@
   "password": "Password",
   "confirm_password": "Confirm Password",
   "full_name": "Full Name",
+  "first_name": "First Name",
+  "last_name": "Last Name",
+  "country": "Country",
   "forgot_my_password": "Forgot password?",
   "accept_terms": "I acknowledge this is a monitored system and I will only access data within my authorized scope",
 
@@ -65,6 +68,9 @@
   "uppercase_required": "Must contain an uppercase letter",
   "number_required": "Must contain a number",
   "full_name_min": "Full name must be at least 2 characters",
+  "first_name_required": "First name is required",
+  "last_name_required": "Last name is required",
+  "country_required": "Country is required",
   "confirm_password_required": "Please confirm your password",
   "passwords_do_not_match": "Passwords do not match.",
   "must_accept_terms": "You must accept the terms of access.",
@@ -123,5 +129,6 @@
   "unexpected_error": "Unexpected error. Please try again.",
   "unauthorized_access": "Unauthorized access is strictly prohibited.",
   "toast_success": "Success",
-  "toast_error": "Error"
+  "toast_error": "Error",
+  "signup_success_toast": "Account request submitted. Pending admin approval."
 }

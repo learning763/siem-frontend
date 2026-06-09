@@ -13,7 +13,23 @@ export async function apiRequest<T>(
   });
 
   if (!res.ok) {
-    throw new Error(`API error: ${res.status} ${res.statusText}`);
+    let message = `Request failed (${res.status})`;
+    try {
+      const body = await res.json();
+      if (typeof body.detail === "string") {
+        message = body.detail;
+      } else {
+        const parts: string[] = [];
+        for (const [key, val] of Object.entries(body)) {
+          const errors = Array.isArray(val) ? val.join(", ") : String(val);
+          parts.push(key === "non_field_errors" ? errors : `${key}: ${errors}`);
+        }
+        if (parts.length) message = parts.join(" | ");
+      }
+    } catch {
+      // keep default message
+    }
+    throw new Error(message);
   }
 
   return res.json() as Promise<T>;
