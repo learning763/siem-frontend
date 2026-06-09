@@ -26,6 +26,15 @@ export interface LoginResponse {
   key?: string;
 }
 
+export interface PasswordResetPayload {
+  email: string;
+}
+
+export interface PasswordResetResponse {
+  message?: string;
+  detail?: string;
+}
+
 export class authApi {
   static async signup(payload: SignupPayload): Promise<SignupResponse> {
     return apiRequest<SignupResponse>("/auth/signup/", {
@@ -54,5 +63,14 @@ export class authApi {
   static logout() {
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
+  }
+
+  static async passwordReset(
+    payload: PasswordResetPayload,
+  ): Promise<PasswordResetResponse> {
+    return apiRequest<PasswordResetResponse>("/auth/password-reset/", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
   }
 }
