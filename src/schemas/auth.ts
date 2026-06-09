@@ -21,3 +21,9 @@ export const signupSchema = z.object({
 });
 
 export type SignupInput = z.infer<typeof signupSchema>;
+
+export const passwordResetSchema = z.object({
+  email: z.string().email("Enter a valid email address"),
+});
+
+export type PasswordResetInput = z.infer<typeof passwordResetSchema>;

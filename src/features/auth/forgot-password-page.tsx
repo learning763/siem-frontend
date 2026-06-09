@@ -1,74 +1,48 @@
 import { useForm } from "@tanstack/react-form";
 import { Link } from "@tanstack/react-router";
-import { ArrowLeft, CheckCircle2, Mail, Shield } from "lucide-react";
+import { ArrowLeft, Mail, Shield } from "lucide-react";
 import { useState } from "react";
 
+import { authApi } from "@/api/auth.api";
 import { Button } from "@/components/library/Button";
 import { Input } from "@/components/library/Input";
+import { useToast } from "@/components/library/Toast";
 import { m } from "@/lib/i18n";
 
 import { AuthLeftPanel } from "./auth-left-panel";
 
 export function ForgotPasswordPage() {
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [submittedEmail, setSubmittedEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const { success: showSuccessToast, error: showErrorToast } = useToast();
 
   const form = useForm({
     defaultValues: { email: "" },
     onSubmit: async ({ value }) => {
       setIsLoading(true);
       try {
-        await new Promise((r) => setTimeout(r, 1000));
-        setSubmittedEmail(value.email);
-        setIsSuccess(true);
+        const response = await authApi.passwordReset({ email: value.email });
+        const message =
+          response.message ?? response.detail ??
+          `Reset link has been sent to ${value.email}`;
+        const isErrorMessage = /not registered|not found|does not exist|invalid email/i.test(
+          message,
+        );
+
+        if (isErrorMessage) {
+          showErrorToast(message);
+        } else {
+          showSuccessToast(message);
+          form.reset();
+        }
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Failed to send reset link";
+        showErrorToast(errorMessage);
       } finally {
         setIsLoading(false);
       }
     },
   });
-
-  if (isSuccess) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950">
-        <div
-          className="absolute inset-0 opacity-[0.06]"
-          style={{
-            backgroundImage: `linear-gradient(rgba(148,163,184,1) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(148,163,184,1) 1px, transparent 1px)`,
-            backgroundSize: "40px 40px",
-          }}
-        />
-        <div className="absolute top-1/2 left-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-500/5 blur-3xl" />
-
-        <div className="relative z-10 w-full max-w-sm px-6 text-center">
-          <div className="mb-5 flex justify-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full border border-cyan-500/30 bg-cyan-500/10">
-              <CheckCircle2 className="h-7 w-7 text-cyan-400" />
-            </div>
-          </div>
-          <h2 className="mb-2 text-xl font-semibold text-white">
-            {m.reset_link_sent()}
-          </h2>
-          <p className="mb-1 text-sm text-slate-400">
-            {m.reset_link_sent_desc()}
-          </p>
-          <p className="mb-6 text-sm font-medium text-cyan-400">
-            {submittedEmail}
-          </p>
-          <p className="mb-8 text-xs text-slate-500">
-            {m.check_inbox_instructions()}
-          </p>
-          <Link
-            to="/login"
-            className="inline-flex items-center gap-2 rounded-lg bg-cyan-500 px-6 py-2.5 text-sm font-semibold text-slate-950 transition-all hover:bg-cyan-400"
-          >
-            {m.return_to_login()}
-          </Link>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex h-screen bg-slate-950">
